@@ -3282,6 +3282,7 @@ var I18N = {
 
 var _APPROVE = '/approve';
 var _COMPLETE = '/complete';
+var _CANCEL   = '/cancel-payment';
 var PI_RATE = 0.642;
 var user = null;
 var isPrem = false;
@@ -4059,19 +4060,35 @@ function initSettingsPanel() {
 /* ═══ HARAMAIN AUTH + PAYMENT PATTERN — Exact Copy ═══ */
 
 function onIncompletePayment(payment) {
-  console.log('[WorldCup] Incomplete payment:', payment);
+  console.log('[WorldCup] Incomplete payment found:', payment);
   if (!payment || !payment.identifier) return;
+
   var pid  = payment.identifier;
   var txid = (payment.transaction && payment.transaction.txid) ? payment.transaction.txid : '';
+
   if (txid) {
-    fetch(_COMPLETE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentId: pid, txid: txid }) })
-      .then(function(r) { return r.json(); })
-      .then(function(d) { console.log('[WorldCup] Incomplete resolved:', d); })
-      .catch(function(e) { console.warn('[WorldCup] Incomplete resolve error:', e); });
+    /* Payment reached blockchain — complete it */
+    console.log('[WorldCup] Completing incomplete payment with txid:', txid);
+    fetch(_COMPLETE, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ paymentId: pid, txid: txid })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ console.log('[WorldCup] Incomplete payment completed:', d); })
+    .catch(function(e){ console.warn('[WorldCup] Complete error:', e); });
+
   } else {
-    /* No cancel endpoint — skip */ /* fetch(_CANCEL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentId: pid }) })
-      .then(function(r) { return r.json(); })
-      .catch(function(e) { console.warn('[WorldCup] Cancel error:', e); }); */
+    /* Payment never reached blockchain — cancel it via Pi SDK */
+    console.log('[WorldCup] Cancelling stuck incomplete payment:', pid);
+    fetch(_CANCEL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ paymentId: pid })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ console.log('[WorldCup] Stuck payment cancelled:', d); })
+    .catch(function(e){ console.warn('[WorldCup] Cancel error:', e); });
   }
 }
 
