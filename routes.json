@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "include": [
+    "/*"
+  ],
+  "exclude": [],
+  "routes": [
+    {
+      "pattern": "/approve",
+      "script": "functions/approve.js"
+    },
+    {
+      "pattern": "/complete",
+      "script": "functions/complete.js"
+    },
+    {
+      "pattern": "/data",
+      "script": "functions/data.js"
+    },
+    {
+      "pattern": "/news",
+      "script": "functions/news.js"
+    },
+    {
+      "pattern": "/audio",
+      "script": "functions/audio.js"
+    },
+    {
+      "pattern": "/video",
+      "script": "functions/video.js"
+    },
+    {
+      "pattern": "/cancel-payment",
+      "script": "functions/cancel-payment.js"
+    }
+  ]
+}
