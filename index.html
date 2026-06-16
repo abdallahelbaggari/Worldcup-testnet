@@ -4059,38 +4059,7 @@ function initSettingsPanel() {
 /* Hook settings init */
 /* ═══ HARAMAIN AUTH + PAYMENT PATTERN — Exact Copy ═══ */
 
-function onIncompletePayment(payment) {
-  console.log('[WorldCup] Incomplete payment found:', payment);
-  if (!payment || !payment.identifier) return;
 
-  var pid  = payment.identifier;
-  var txid = (payment.transaction && payment.transaction.txid) ? payment.transaction.txid : '';
-
-  if (txid) {
-    /* Payment reached blockchain — complete it */
-    console.log('[WorldCup] Completing incomplete payment with txid:', txid);
-    fetch(_COMPLETE, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ paymentId: pid, txid: txid })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){ console.log('[WorldCup] Incomplete payment completed:', d); })
-    .catch(function(e){ console.warn('[WorldCup] Complete error:', e); });
-
-  } else {
-    /* Payment never reached blockchain — cancel it via Pi SDK */
-    console.log('[WorldCup] Cancelling stuck incomplete payment:', pid);
-    fetch(_CANCEL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ paymentId: pid })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){ console.log('[WorldCup] Stuck payment cancelled:', d); })
-    .catch(function(e){ console.warn('[WorldCup] Cancel error:', e); });
-  }
-}
 
 function addTx(text){
   var d = new Date().toLocaleTimeString();
@@ -10044,6 +10013,50 @@ function _wchPosterHtml(v, color) {
     +'<div style="font-family:var(--dm);font-size:.5rem;color:rgba(255,255,255,.55);text-align:center;padding:0 .75rem">'
       +'Full story below</div>'
     +'</div>';
+}
+
+function onIncompletePayment(payment) {
+  /* Pi SDK calls this when a pending payment exists.
+     We send the full payment object to our /incomplete endpoint.
+     Server handles complete vs cancel logic safely.
+     NEVER show our own UI here — just resolve silently. */
+  if (!payment) return;
+
+  console.log('[WorldCup] Incomplete payment — resolving silently:', payment.identifier);
+
+  /* Safely extract txid — payment.transaction may be null */
+  var txid = '';
+  try {
+    txid = (payment.transaction && payment.transaction.txid)
+      ? payment.transaction.txid : '';
+  } catch(e) { txid = ''; }
+
+  var pid = payment.identifier;
+
+  if (txid) {
+    /* Has txid — complete it */
+    console.log('[WorldCup] Completing: txid=' + txid);
+    fetch(_COMPLETE, {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({paymentId: pid, txid: txid})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ console.log('[WorldCup] Completed:', d); })
+    .catch(function(e){ console.warn('[WorldCup] Complete error:', e); });
+
+  } else {
+    /* No txid — payment stuck before blockchain, cancel it */
+    console.log('[WorldCup] Cancelling stuck payment: ' + pid);
+    fetch(_CANCEL, {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({paymentId: pid})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ console.log('[WorldCup] Cancelled:', d); })
+    .catch(function(e){ console.warn('[WorldCup] Cancel error:', e); });
+  }
 }
 </script><!-- LEGAL OVERLAY -->
 <div id="legal-overlay" class="legal-overlay">
