@@ -15,7 +15,7 @@ export async function onRequestGet(context) {
     ['API-Football key', af, af ? 'Set' : 'Not set (friendlies and Nations League off)', 'Add API_FOOTBALL_KEY in Cloudflare (mainnet only)'],
     ['Shared cache (WC_CACHE)', !!env.WC_CACHE, env.WC_CACHE ? 'Bound' : 'Not bound', 'Cloudflare → Storage → KV → create WC_CACHE, then spl project → Settings → Bindings → KV namespace, variable name WC_CACHE, redeploy'],
   ];
-  const needed = NETWORK === 'mainnet' ? checks : checks.filter((c) => c[0] !== 'API-Football key');
+  const needed = checks.filter((c) => c[0] !== 'API-Football key'); // optional: free plan adds nothing for current seasons
   const ready = needed.every((c) => c[1]);
   if (new URL(context.request.url).searchParams.get('format') === 'json') {
     return Response.json({ ready, network: NETWORK, checks: checks.map(([name, ok, value]) => ({ name, ok, value })) }, { headers: { 'Cache-Control': 'no-store' } });

@@ -1,6 +1,6 @@
 {
-  "name": "WorldCup — International Football",
-  "short_name": "WorldCup",
+  "name": "WorldCup Testnet — International Football",
+  "short_name": "WorldCup Test",
   "description": "The home of international football: national teams, World Cup brackets, live scores and history.",
   "start_url": "/#/home",
   "scope": "/",

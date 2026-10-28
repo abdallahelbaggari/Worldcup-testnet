@@ -1150,7 +1150,7 @@ function compItem(c) {
 }
 
 let COMP_INFO = new Map();       // id → { cup, name, country, logo, covered }
-let piToken = null;              // Pi access token (memory only) for the Predictor
+let piToken = null;              // Pi access token (memory only)
 const isCup = (id) => !!(COMP_INFO.get(String(id)) || {}).cup;
 function loadCompInfo() {
   return api('competitions').then((b) => { COMP_INFO = new Map(b.data.filter((c) => c.id != null).map((c) => [String(c.id), c])); return b; }).catch(() => null);
@@ -1256,7 +1256,7 @@ function viewCompetition(id, refresh) {
   if (!refresh) {
     setTop('Competition');
     app.innerHTML = `<div class="view"><div id="compHead">${skeleton(1)}</div>
-      <div class="tabs" id="compTabs">${(isCup(id) ? [['bracket', 'Bracket'], ['matches', 'Matches'], ['table', 'Groups'], ['scorers', 'Top scorers']] : [['table', 'Table'], ['matches', 'Matches'], ['scorers', 'Top scorers']]).map(([k, l]) => `<button class="tab ${state.compTab === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('')}</div>
+      <div class="tabs" id="compTabs">${(isCup(id) ? [['bracket', 'Bracket'], ['matches', 'Matches'], ['table', ((COMP_INFO.get(String(id)) || {}).group === 'Club football') ? 'Table' : 'Groups'], ['scorers', 'Top scorers']] : [['table', 'Table'], ['matches', 'Matches'], ['scorers', 'Top scorers']]).map(([k, l]) => `<button class="tab ${state.compTab === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('')}</div>
       <div id="compBody" class="panel">${skeleton(2)}</div></div>`;
     $('#compTabs').onclick = (e) => { const b = e.target.closest('[data-t]'); if (!b) return; state.compTab = b.dataset.t; document.querySelectorAll('#compTabs .tab').forEach((t) => t.classList.toggle('on', t === b)); paintCompTab(id); };
   }
@@ -1702,7 +1702,7 @@ function viewMe() {
 
 /* =====================================================================
    PI NETWORK — MAINNET sign-in + payments
-   Pattern proven in Copa / Humanitarian Hub:
+   Proven Pi payment pattern:
    - Pi.init in piLogin AND submitPiPayment
    - onReadyForServerApproval: fire-and-forget fetch, no return, .then.then.catch
    - onReadyForServerCompletion: fetch .then.then.catch
@@ -1854,7 +1854,7 @@ sRes.addEventListener('click', (e) => { if (e.target.closest('a')) closeSearch()
 sIn.addEventListener('input', () => { clearTimeout(sTimer); sTimer = setTimeout(runSearch, 350); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSearch(); });
 function searchHint() {
-  sRes.innerHTML = `<div class="section-h"><h2>Popular</h2></div><div class="chips" style="flex-wrap:wrap">${['Argentina', 'France', 'Brazil', 'Nigeria', 'Morocco', 'World Cup'].map((s) => `<button class="chip" data-s="${s}">${s}</button>`).join('')}</div>`;
+  sRes.innerHTML = `<div class="section-h"><h2>Popular</h2></div><div class="chips" style="flex-wrap:wrap">${['Argentina', 'France', 'Brazil', 'Germany', 'Morocco', 'World Cup'].map((s) => `<button class="chip" data-s="${s}">${s}</button>`).join('')}</div>`;
   sRes.querySelectorAll('[data-s]').forEach((b) => b.onclick = () => { sIn.value = b.dataset.s; runSearch(); });
 }
 async function runSearch() {
@@ -2003,7 +2003,7 @@ function showOnboarding(force) {
       <g class="bp final" style="animation-delay:2.7s"><rect x="234" y="${y1 - 15}" width="64" height="30" rx="15"/><text x="266" y="${y1 + 5}">ESP</text></g>
       <g class="bcup" style="animation-delay:3.1s"><path d="M254 86h24v9a12 12 0 01-24 0z"/><rect x="263" y="106" width="6" height="8"/><rect x="257" y="114" width="18" height="5" rx="2"/></g>
     </svg>`;
-  const NATS = [['Argentina','ARG','#75AADB'],['Brazil','BRA','#FFDF00'],['France','FRA','#0055A4'],['Nigeria','NGA','#008751'],['Morocco','MAR','#C1272D'],['Japan','JPN','#BC002D'],
+  const NATS = [['Argentina','ARG','#75AADB'],['Brazil','BRA','#FFDF00'],['France','FRA','#0055A4'],['Germany','GER','#2A2A2A'],['Morocco','MAR','#C1272D'],['Japan','JPN','#BC002D'],
     ['Spain','ESP','#F1BF00'],['England','ENG','#CF081F'],['Mexico','MEX','#006847'],['Senegal','SEN','#00853F'],['USA','USA','#3C3B6E'],['Portugal','POR','#006600']];
   const slides = [
     `<section class="onb-slide nt cine">${bg(0)}<div class="ob-conf">${confetti}</div>
